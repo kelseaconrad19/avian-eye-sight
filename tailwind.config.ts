@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,7 +62,35 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				nature: {
+					50: '#f5f9e9',
+					100: '#e9f2d0',
+					200: '#d5e5a3',
+					300: '#b9d16d',
+					400: '#a3c14a',
+					500: '#84ab2e',
+					600: '#648023',
+					700: '#4d7c0f',
+					800: '#3a5815',
+					900: '#2a4212',
+				},
+				azure: {
+					50: '#edfcff',
+					100: '#d6f5fe',
+					200: '#b5ebfd',
+					300: '#83dcfb',
+					400: '#48c5f3',
+					500: '#22aceb',
+					600: '#0891b2',
+					700: '#0e74a1',
+					800: '#145c84',
+					900: '#154d6f',
 				}
+			},
+			fontFamily: {
+				sans: ['Inter', 'sans-serif'],
+				display: ['Nunito', 'sans-serif'],
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -84,11 +113,21 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'fade-in': {
+					'0%': { opacity: '0' },
+					'100%': { opacity: '1' }
+				},
+				'zoom-in': {
+					'0%': { transform: 'scale(0.95)', opacity: '0' },
+					'100%': { transform: 'scale(1)', opacity: '1' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in': 'fade-in 0.3s ease-out',
+				'zoom-in': 'zoom-in 0.4s ease-out'
 			}
 		}
 	},
