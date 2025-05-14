@@ -9,7 +9,77 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      bird_species: {
+        Row: {
+          confidence: number | null
+          created_at: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          name: string
+          scientific_name: string
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+          scientific_name: string
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          scientific_name?: string
+        }
+        Relationships: []
+      }
+      user_sightings: {
+        Row: {
+          bird_species_id: string | null
+          created_at: string | null
+          id: string
+          image_url: string | null
+          location: string | null
+          notes: string | null
+          sighting_date: string | null
+          user_id: string | null
+        }
+        Insert: {
+          bird_species_id?: string | null
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          location?: string | null
+          notes?: string | null
+          sighting_date?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          bird_species_id?: string | null
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          location?: string | null
+          notes?: string | null
+          sighting_date?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_sightings_bird_species_id_fkey"
+            columns: ["bird_species_id"]
+            isOneToOne: false
+            referencedRelation: "bird_species"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

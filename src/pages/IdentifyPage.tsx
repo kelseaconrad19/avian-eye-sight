@@ -6,7 +6,8 @@ import { BirdResult, BirdInfo } from "@/components/bird-identification/BirdResul
 import { SightingForm, SightingData } from "@/components/sightings/SightingForm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { mockIdentifyBird } from "@/services/birdIdentification";
+import { identifyBird } from "@/services/birdIdentification";
+import { supabase } from "@/integrations/supabase/client";
 
 export function IdentifyPage() {
   const [selectedImage, setSelectedImage] = useState("");
@@ -22,10 +23,11 @@ export function IdentifyPage() {
     if (imageData) {
       setIsIdentifying(true);
       try {
-        // In a real implementation, this would be an API call
-        const result = await mockIdentifyBird(imageData);
+        // Call our new bird identification service
+        const result = await identifyBird(imageData);
         setIdentifiedBird(result);
       } catch (error) {
+        console.error("Identification error:", error);
         toast({
           title: "Identification failed",
           description: "Could not identify the bird. Please try with a different image.",
@@ -41,17 +43,81 @@ export function IdentifyPage() {
     setShowSightingForm(true);
   };
 
-  const handleSaveSighting = (data: SightingData) => {
-    // In a real app, this would save to a database
-    const currentSightings = JSON.parse(localStorage.getItem("birdSightings") || "[]");
-    const updatedSightings = [...currentSightings, data];
-    localStorage.setItem("birdSightings", JSON.stringify(updatedSightings));
-    
-    setShowSightingForm(false);
-    toast({
-      title: "Sighting saved",
-      description: `${identifiedBird?.name} has been added to your sightings!`,
-    });
+  const handleSaveSighting = async (data: SightingData) => {
+    try {
+      // Save to Supabase if we have bird data
+      if (identifiedBird) {
+        // First ensure the bird species exists in the database
+        const { data: birdSpecies, error: birdError } = await supabase
+          .from('bird_species')
+          .select('id')
+          .eq('name', identifiedBird.name)
+          .single();
+
+        if (birdError && birdError.code !== 'PGRST116') {
+          console.error("Error fetching bird species:", birdError);
+          throw birdError;
+        }
+
+        let birdSpeciesId = birdSpecies?.id;
+        
+        // If bird not found, insert it
+        if (!birdSpeciesId) {
+          const { data: newBird, error: insertError } = await supabase
+            .from('bird_species')
+            .insert({
+              name: identifiedBird.name,
+              scientific_name: identifiedBird.scientificName,
+              description: identifiedBird.description,
+              image_url: identifiedBird.imageUrl,
+              confidence: identifiedBird.confidence
+            })
+            .select('id')
+            .single();
+
+          if (insertError) {
+            console.error("Error inserting bird species:", insertError);
+            throw insertError;
+          }
+
+          birdSpeciesId = newBird.id;
+        }
+
+        // Save the user sighting
+        const { error: sightingError } = await supabase
+          .from('user_sightings')
+          .insert({
+            bird_species_id: birdSpeciesId,
+            location: data.location,
+            notes: data.notes,
+            sighting_date: data.date.toISOString(),
+            image_url: selectedImage
+          });
+
+        if (sightingError) {
+          console.error("Error saving sighting:", sightingError);
+          throw sightingError;
+        }
+      }
+      
+      // Also save to local storage for backward compatibility
+      const currentSightings = JSON.parse(localStorage.getItem("birdSightings") || "[]");
+      const updatedSightings = [...currentSightings, data];
+      localStorage.setItem("birdSightings", JSON.stringify(updatedSightings));
+      
+      setShowSightingForm(false);
+      toast({
+        title: "Sighting saved",
+        description: `${identifiedBird?.name} has been added to your sightings!`,
+      });
+    } catch (error) {
+      console.error("Error saving sighting:", error);
+      toast({
+        title: "Error saving sighting",
+        description: "There was a problem saving your sighting. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
