@@ -1,1 +1,5 @@
+
 project_id = "tfajjqeixzikmvuitmcp"
+
+[functions.identify-bird]
+verify_jwt = false
