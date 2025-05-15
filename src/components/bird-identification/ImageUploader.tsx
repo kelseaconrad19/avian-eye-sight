@@ -1,9 +1,10 @@
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Camera, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ImageUploaderProps {
   onImageSelected: (imageData: string) => void;
@@ -13,6 +14,16 @@ export function ImageUploader({ onImageSelected }: ImageUploaderProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
+
+  useEffect(() => {
+    // Check if there's a pending image in session storage
+    const pendingImage = sessionStorage.getItem("pendingBirdImage");
+    if (pendingImage) {
+      setPreviewUrl(pendingImage);
+      onImageSelected(pendingImage);
+    }
+  }, [onImageSelected]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -42,16 +53,36 @@ export function ImageUploader({ onImageSelected }: ImageUploaderProps) {
   };
 
   const handleClear = () => {
+    if (window.navigator && window.navigator.vibrate) {
+      window.navigator.vibrate(50); // Haptic feedback
+    }
+    
     setPreviewUrl(null);
     onImageSelected("");
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
+    
+    // Clear from session storage too
+    sessionStorage.removeItem("pendingBirdImage");
   };
 
   const handleCapture = async () => {
+    if (window.navigator && window.navigator.vibrate) {
+      window.navigator.vibrate(50); // Haptic feedback
+    }
+    
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      // Request camera with specific constraints for mobile
+      const constraints = {
+        video: {
+          facingMode: "environment", // Use back camera on mobile
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        }
+      };
+      
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
       const videoEl = document.createElement("video");
       const canvasEl = document.createElement("canvas");
       
@@ -64,7 +95,7 @@ export function ImageUploader({ onImageSelected }: ImageUploaderProps) {
         const ctx = canvasEl.getContext("2d");
         ctx?.drawImage(videoEl, 0, 0);
         
-        const imageData = canvasEl.toDataURL("image/jpeg");
+        const imageData = canvasEl.toDataURL("image/jpeg", 0.95);
         setPreviewUrl(imageData);
         onImageSelected(imageData);
         
@@ -92,10 +123,10 @@ export function ImageUploader({ onImageSelected }: ImageUploaderProps) {
             <Button
               variant="destructive"
               size="icon"
-              className="absolute top-2 right-2 rounded-full"
+              className="absolute top-2 right-2 rounded-full w-10 h-10" // Larger touch target for mobile
               onClick={handleClear}
             >
-              <X className="h-4 w-4" />
+              <X className="h-5 w-5" />
             </Button>
           </div>
         ) : (
@@ -105,7 +136,7 @@ export function ImageUploader({ onImageSelected }: ImageUploaderProps) {
           >
             <Upload className="h-12 w-12 text-muted-foreground mb-3" />
             <p className="text-muted-foreground text-center mb-1">
-              Drag and drop an image or click to browse
+              {isMobile ? "Tap to upload an image" : "Drag and drop an image or click to browse"}
             </p>
             <p className="text-xs text-muted-foreground text-center">
               Supports JPG, PNG, GIF
@@ -123,19 +154,19 @@ export function ImageUploader({ onImageSelected }: ImageUploaderProps) {
           />
           <Button
             variant="outline"
-            className="flex-1"
+            className="flex-1 h-12" // Taller button for better touch target
             onClick={handleClick}
           >
             <Upload className="h-4 w-4 mr-2" />
-            Choose File
+            {isMobile ? "Gallery" : "Choose File"}
           </Button>
           <Button
             variant="outline"
-            className="flex-1"
+            className="flex-1 h-12" // Taller button for better touch target
             onClick={handleCapture}
           >
             <Camera className="h-4 w-4 mr-2" />
-            Use Camera
+            {isMobile ? "Camera" : "Use Camera"}
           </Button>
         </div>
       </CardContent>
