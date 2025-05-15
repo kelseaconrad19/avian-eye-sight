@@ -39,13 +39,12 @@ serve(async (req) => {
       : image;
 
     // Call the Roboflow API for bird identification
-    const response = await fetch(ROBOFLOW_API_URL, {
+    const response = await fetch(`${ROBOFLOW_API_URL}?api_key=${ROBOFLOW_API_KEY}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded"
       },
       body: base64Image,
-      // Add API key as query parameter
       signal: AbortSignal.timeout(10000) // 10 second timeout
     });
 
