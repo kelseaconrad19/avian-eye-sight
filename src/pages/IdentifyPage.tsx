@@ -45,7 +45,7 @@ export function IdentifyPage() {
 
   const handleSaveSighting = async (data: SightingData) => {
     try {
-      // Save to Supabase if we have bird data
+      // Only save to Supabase if we have bird data
       if (identifiedBird) {
         // First ensure the bird species exists in the database
         const { data: birdSpecies, error: birdError } = await supabase
@@ -83,7 +83,7 @@ export function IdentifyPage() {
           birdSpeciesId = newBird.id;
         }
 
-        // Save the user sighting
+        // Save the user sighting to Supabase
         const { error: sightingError } = await supabase
           .from('user_sightings')
           .insert({
@@ -98,12 +98,14 @@ export function IdentifyPage() {
           console.error("Error saving sighting:", sightingError);
           throw sightingError;
         }
+
+        // We successfully saved to Supabase, so no need to save to localStorage
+      } else {
+        // No bird data, save to localStorage as fallback
+        const currentSightings = JSON.parse(localStorage.getItem("birdSightings") || "[]");
+        const updatedSightings = [...currentSightings, data];
+        localStorage.setItem("birdSightings", JSON.stringify(updatedSightings));
       }
-      
-      // Also save to local storage for backward compatibility
-      const currentSightings = JSON.parse(localStorage.getItem("birdSightings") || "[]");
-      const updatedSightings = [...currentSightings, data];
-      localStorage.setItem("birdSightings", JSON.stringify(updatedSightings));
       
       setShowSightingForm(false);
       toast({

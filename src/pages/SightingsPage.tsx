@@ -68,8 +68,16 @@ export function SightingsPage() {
         // Also load from localStorage for backward compatibility
         const storedSightings = JSON.parse(localStorage.getItem("birdSightings") || "[]");
         
+        // Create a Set of IDs for quick lookup
+        const existingIds = new Set(formattedSightings.map(s => s.id));
+        
+        // Only add localStorage entries that don't exist in Supabase
+        const uniqueStoredSightings = storedSightings.filter(
+          (s: SightingData) => !existingIds.has(s.id)
+        );
+        
         // Combine both sources, prioritizing Supabase data
-        const allSightings = [...formattedSightings, ...storedSightings];
+        const allSightings = [...formattedSightings, ...uniqueStoredSightings];
         setSightings(allSightings);
         
       } catch (error) {
