@@ -1,7 +1,5 @@
 
 import { Navbar } from "./Navbar";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Bird, Heart } from "lucide-react";
 
 interface AppLayoutProps {
@@ -30,8 +28,6 @@ export function AppLayout({ children }: AppLayoutProps) {
           </div>
         </div>
       </footer>
-      <Toaster />
-      <Sonner />
     </div>
   );
 }

@@ -26,7 +26,7 @@ export function IdentifyPage() {
     if (imageData) {
       setIsIdentifying(true);
       try {
-        // Call our new bird identification service
+        // Call our bird identification service
         const result = await identifyBird(imageData);
         setIdentifiedBird(result);
       } catch (error) {
@@ -101,8 +101,6 @@ export function IdentifyPage() {
           console.error("Error saving sighting:", sightingError);
           throw sightingError;
         }
-
-        // We successfully saved to Supabase, so no need to save to localStorage
       } else {
         // No bird data, save to localStorage as fallback
         const currentSightings = JSON.parse(localStorage.getItem("birdSightings") || "[]");

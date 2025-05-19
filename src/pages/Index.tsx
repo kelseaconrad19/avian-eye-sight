@@ -8,7 +8,7 @@ const Index = () => {
   const isMobile = useIsMobile();
   
   return (
-    <div className="relative">
+    <div className="relative min-h-screen">
       {/* Full-width hero image with overlay */}
       <div className="absolute inset-0 -z-10 h-[100vh] w-full">
         <div className="absolute inset-0 bg-black/60 dark:bg-black/70" />
@@ -21,10 +21,10 @@ const Index = () => {
       
       <PageContainer className="max-w-5xl z-10">
         <div className="mb-10 text-center pt-16">
-          <h1 className="text-5xl md:text-6xl font-display font-bold text-white mb-4 animate-fade-in">
+          <h1 className="text-5xl md:text-6xl font-display font-bold text-white mb-4 animate-fadeIn">
             Welcome to BirdWatch
           </h1>
-          <p className="text-xl text-white/90 font-light animate-fade-in">
+          <p className="text-xl text-white/90 font-light animate-fadeIn">
             Identify beautiful birds and track your sightings
           </p>
         </div>
