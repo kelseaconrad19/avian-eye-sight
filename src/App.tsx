@@ -11,15 +11,7 @@ import { CommunityPage } from "./pages/CommunityPage";
 import { UploadPage } from "./pages/UploadPage";
 import NotFound from "./pages/NotFound";
 
-// Initialize QueryClient with better error handling
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
