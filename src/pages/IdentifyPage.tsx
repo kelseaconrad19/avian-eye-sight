@@ -8,6 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useToast } from "@/hooks/use-toast";
 import { identifyBird } from "@/services/birdIdentification";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Upload, Bird } from "lucide-react";
 
 export function IdentifyPage() {
   const [selectedImage, setSelectedImage] = useState("");
@@ -15,6 +17,7 @@ export function IdentifyPage() {
   const [identifiedBird, setIdentifiedBird] = useState<BirdInfo | null>(null);
   const [showSightingForm, setShowSightingForm] = useState(false);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const handleImageSelected = async (imageData: string) => {
     setSelectedImage(imageData);
@@ -123,15 +126,17 @@ export function IdentifyPage() {
   };
 
   return (
-    <PageContainer title="Identify Birds">
+    <div className="animate-fade-in">
       <div className="grid md:grid-cols-2 gap-6">
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Upload an Image</h2>
+        <div className="p-4 backdrop-blur-sm bg-black/30 rounded-xl border border-white/20 shadow-xl">
+          <h2 className="text-xl font-semibold mb-4 text-white flex items-center">
+            <Upload className="mr-2 h-5 w-5" /> 
+            Identify Birds
+          </h2>
           <ImageUploader onImageSelected={handleImageSelected} />
         </div>
         
         <div>
-          <h2 className="text-xl font-semibold mb-4">Identification Results</h2>
           <BirdResult 
             birdInfo={identifiedBird}
             isLoading={isIdentifying}
@@ -142,9 +147,11 @@ export function IdentifyPage() {
 
       {/* Sighting Form Dialog */}
       <Dialog open={showSightingForm} onOpenChange={setShowSightingForm}>
-        <DialogContent>
+        <DialogContent className={isMobile ? "w-[95%] rounded-xl" : "rounded-xl"}>
           <DialogHeader>
-            <DialogTitle>Add to My Sightings</DialogTitle>
+            <DialogTitle className="flex items-center">
+              <Bird className="mr-2 h-5 w-5" /> Add to My Sightings
+            </DialogTitle>
           </DialogHeader>
           {identifiedBird && (
             <SightingForm
@@ -155,6 +162,6 @@ export function IdentifyPage() {
           )}
         </DialogContent>
       </Dialog>
-    </PageContainer>
+    </div>
   );
 }
