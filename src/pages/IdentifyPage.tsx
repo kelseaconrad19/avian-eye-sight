@@ -1,6 +1,5 @@
 
 import { useState } from "react";
-import { PageContainer } from "@/components/layout/PageContainer";
 import { ImageUploader } from "@/components/bird-identification/ImageUploader";
 import { BirdResult, BirdInfo } from "@/components/bird-identification/BirdResult";
 import { SightingForm, SightingData } from "@/components/sightings/SightingForm";
@@ -8,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useToast } from "@/hooks/use-toast";
 import { identifyBird } from "@/services/birdIdentification";
 import { supabase } from "@/integrations/supabase/client";
+import { Feather } from "lucide-react";
 
 export function IdentifyPage() {
   const [selectedImage, setSelectedImage] = useState("");
@@ -23,7 +23,7 @@ export function IdentifyPage() {
     if (imageData) {
       setIsIdentifying(true);
       try {
-        // Call our new bird identification service
+        // Call our bird identification service
         const result = await identifyBird(imageData);
         setIdentifiedBird(result);
       } catch (error) {
@@ -123,15 +123,30 @@ export function IdentifyPage() {
   };
 
   return (
-    <PageContainer title="Identify Birds">
-      <div className="grid md:grid-cols-2 gap-6">
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Upload an Image</h2>
+    <div className="animate-fade-in">
+      <div className="flex items-center mb-8">
+        <div className="h-px flex-grow bg-gradient-to-r from-transparent to-maroon-200 dark:to-maroon-800"></div>
+        <div className="px-4 font-medium text-maroon-600 dark:text-maroon-300 flex items-center">
+          <Feather className="h-5 w-5 mr-2 text-maroon-500 dark:text-maroon-400" />
+          <span>Identify and Track Birds</span>
+        </div>
+        <div className="h-px flex-grow bg-gradient-to-l from-transparent to-maroon-200 dark:to-maroon-800"></div>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-8">
+        <div className="space-y-4">
+          <div className="bg-gradient-to-r from-earth-100 to-transparent dark:from-earth-800/50 dark:to-transparent p-2 rounded-lg">
+            <h2 className="text-xl font-semibold mb-1 font-playfair">Upload an Image</h2>
+            <p className="text-sm text-muted-foreground mb-2">Take a photo or upload an image of a bird to identify</p>
+          </div>
           <ImageUploader onImageSelected={handleImageSelected} />
         </div>
         
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Identification Results</h2>
+        <div className="space-y-4">
+          <div className="bg-gradient-to-r from-earth-100 to-transparent dark:from-earth-800/50 dark:to-transparent p-2 rounded-lg">
+            <h2 className="text-xl font-semibold mb-1 font-playfair">Identification Results</h2>
+            <p className="text-sm text-muted-foreground mb-2">Our AI will analyze and identify the bird species</p>
+          </div>
           <BirdResult 
             birdInfo={identifiedBird}
             isLoading={isIdentifying}
@@ -142,9 +157,12 @@ export function IdentifyPage() {
 
       {/* Sighting Form Dialog */}
       <Dialog open={showSightingForm} onOpenChange={setShowSightingForm}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md border-earth-200 dark:border-earth-700">
           <DialogHeader>
-            <DialogTitle>Add to My Sightings</DialogTitle>
+            <DialogTitle className="text-center flex items-center justify-center">
+              <Feather className="h-5 w-5 mr-2" />
+              Add to My Sightings
+            </DialogTitle>
           </DialogHeader>
           {identifiedBird && (
             <SightingForm
@@ -155,6 +173,6 @@ export function IdentifyPage() {
           )}
         </DialogContent>
       </Dialog>
-    </PageContainer>
+    </div>
   );
 }
