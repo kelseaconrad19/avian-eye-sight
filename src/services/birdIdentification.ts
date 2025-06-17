@@ -5,25 +5,34 @@ import { BirdInfo } from "@/components/bird-identification/BirdResult";
 // Function to call our Supabase Edge Function for bird identification
 export const identifyBird = async (imageData: string): Promise<BirdInfo> => {
   try {
-    // Strip the data:image prefix if present
-    const base64Image = imageData.includes('base64,') 
-      ? imageData.split('base64,')[1] 
-      : imageData;
+    console.log("Starting bird identification...");
     
-    // Call the Supabase Edge Function
+    // Validate image data
+    if (!imageData || imageData.trim() === '') {
+      throw new Error('No image data provided');
+    }
+
+    // Log image data info (first 100 chars for debugging)
+    console.log("Image data preview:", imageData.substring(0, 100));
+    
+    // Call the Supabase Edge Function with the full image data
     const { data, error } = await supabase.functions.invoke('identify-bird', {
       body: { image: imageData },
     });
 
     if (error) {
-      console.error('Error identifying bird:', error);
-      throw new Error('Failed to identify bird');
+      console.error('Supabase function error:', error);
+      throw new Error(`Failed to identify bird: ${error.message}`);
     }
 
-    // Store the identified bird in our database for future reference
-    if (data) {
-      await storeBirdSpecies(data);
+    if (!data) {
+      throw new Error('No data returned from identification service');
     }
+
+    console.log("Identification result:", data);
+
+    // Store the identified bird in our database for future reference
+    await storeBirdSpecies(data);
 
     return {
       name: data.name,
@@ -41,6 +50,8 @@ export const identifyBird = async (imageData: string): Promise<BirdInfo> => {
 // Store the identified bird species in our database
 async function storeBirdSpecies(birdData: any) {
   try {
+    console.log("Storing bird species:", birdData.name);
+    
     const { error } = await supabase
       .from('bird_species')
       .upsert(
@@ -56,6 +67,8 @@ async function storeBirdSpecies(birdData: any) {
 
     if (error) {
       console.error('Error storing bird species:', error);
+    } else {
+      console.log("Bird species stored successfully");
     }
   } catch (error) {
     console.error('Error storing bird species:', error);
