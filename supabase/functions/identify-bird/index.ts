@@ -2,8 +2,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 
-const ROBOFLOW_API_URL = "https://detect.roboflow.com/bird-identification-v2/1";
-const ROBOFLOW_API_KEY = Deno.env.get("ROBOFLOW_API_KEY");
+const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 
 interface RequestBody {
   image: string; // Base64 encoded image
@@ -33,57 +32,69 @@ serve(async (req) => {
       );
     }
 
-    console.log("Received image data, length:", image.length);
+    console.log("Received image data, processing with OpenAI...");
 
-    // Validate and clean the base64 image
-    let base64Image = image;
-    if (image.includes('data:image/')) {
-      // Extract just the base64 part after the comma
-      const base64Index = image.indexOf(',');
-      if (base64Index !== -1) {
-        base64Image = image.substring(base64Index + 1);
-      }
-    }
-
-    // Validate base64 format
-    if (!isValidBase64(base64Image)) {
-      console.error("Invalid base64 image format");
-      return new Response(
-        JSON.stringify({ error: "Invalid image format" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    console.log("Cleaned base64 image, length:", base64Image.length);
-
-    if (!ROBOFLOW_API_KEY) {
-      console.error("Roboflow API key not configured");
+    if (!OPENAI_API_KEY) {
+      console.error("OpenAI API key not configured");
       return new Response(
         JSON.stringify(await createFallbackResult()),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Call the Roboflow API with proper formatting
-    const apiUrl = `${ROBOFLOW_API_URL}?api_key=${ROBOFLOW_API_KEY}&format=json`;
-    console.log("Calling Roboflow API:", apiUrl);
+    // Prepare the image for OpenAI
+    let base64Image = image;
+    if (!image.startsWith('data:image/')) {
+      base64Image = `data:image/jpeg;base64,${image}`;
+    }
 
-    const response = await fetch(apiUrl, {
+    console.log("Calling OpenAI Vision API...");
+
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded"
+        "Authorization": `Bearer ${OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
       },
-      body: base64Image,
-      signal: AbortSignal.timeout(30000) // 30 second timeout
+      body: JSON.stringify({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: `Please identify the bird species in this image. Provide your response in this exact JSON format:
+{
+  "name": "Common Name of the bird",
+  "scientific_name": "Scientific name",
+  "description": "Detailed description of the bird, its characteristics, habitat, and behavior (2-3 sentences)",
+  "confidence": 0.95
+}
+
+Be as accurate as possible with the identification. If you're not completely certain, still provide your best identification but adjust the confidence score accordingly (0.1 to 1.0).`
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: base64Image
+                }
+              }
+            ]
+          }
+        ],
+        max_tokens: 500,
+        temperature: 0.1
+      }),
+      signal: AbortSignal.timeout(30000)
     });
 
-    console.log("Roboflow API response status:", response.status);
+    console.log("OpenAI API response status:", response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Roboflow API error:", response.status, errorText);
+      console.error("OpenAI API error:", response.status, errorText);
       
-      // Return fallback result instead of throwing error
       return new Response(
         JSON.stringify(await createFallbackResult()),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -91,45 +102,45 @@ serve(async (req) => {
     }
 
     const apiResult = await response.json();
-    console.log("Roboflow API result:", JSON.stringify(apiResult, null, 2));
+    console.log("OpenAI API result:", JSON.stringify(apiResult, null, 2));
 
-    // Process predictions if available
-    if (apiResult.predictions && Array.isArray(apiResult.predictions) && apiResult.predictions.length > 0) {
-      // Sort by confidence and get the top prediction
-      const topPrediction = apiResult.predictions
-        .filter(pred => pred.confidence && pred.confidence > 0.1) // Filter out very low confidence
-        .sort((a, b) => (b.confidence || 0) - (a.confidence || 0))[0];
+    if (apiResult.choices && apiResult.choices[0] && apiResult.choices[0].message) {
+      const content = apiResult.choices[0].message.content;
+      console.log("OpenAI response content:", content);
       
-      if (topPrediction) {
-        console.log("Top prediction:", topPrediction);
-        
-        // Format bird name from prediction class
-        let birdName = topPrediction.class || "Unknown Bird";
-        birdName = birdName
-          .replace(/_/g, ' ')
-          .replace(/\b\w/g, c => c.toUpperCase());
-        
-        // Get additional bird information
-        const birdInfo = await getBirdInfo(birdName);
-        
-        const result: BirdIdentificationResult = {
-          name: birdName,
-          scientific_name: birdInfo.scientific_name || `${birdName.toLowerCase().replace(' ', '_')} scientificus`,
-          description: birdInfo.description || `This appears to be a ${birdName} identified with ${Math.round(topPrediction.confidence * 100)}% confidence.`,
-          confidence: topPrediction.confidence,
-          image_url: birdInfo.image_url || ""
-        };
+      try {
+        // Extract JSON from the response
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const birdData = JSON.parse(jsonMatch[0]);
+          
+          // Get additional bird information from our database
+          const birdInfo = await getBirdInfo(birdData.name);
+          
+          const result: BirdIdentificationResult = {
+            name: birdData.name,
+            scientific_name: birdData.scientific_name,
+            description: birdData.description,
+            confidence: birdData.confidence || 0.8,
+            image_url: birdInfo.image_url || ""
+          };
 
-        console.log("Returning result:", result);
-        return new Response(
-          JSON.stringify(result),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+          console.log("Final result:", result);
+          
+          // Store the identified bird in our database
+          await storeBirdSpecies(result);
+
+          return new Response(
+            JSON.stringify(result),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      } catch (parseError) {
+        console.error("Error parsing OpenAI response:", parseError);
       }
     }
     
-    console.log("No valid predictions found, using fallback");
-    // No valid predictions found, use fallback
+    console.log("Could not parse valid bird identification, using fallback");
     return new Response(
       JSON.stringify(await createFallbackResult()),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -138,7 +149,6 @@ serve(async (req) => {
   } catch (error) {
     console.error("Error in bird identification:", error);
     
-    // Provide a fallback response
     return new Response(
       JSON.stringify(await createFallbackResult()),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -146,29 +156,11 @@ serve(async (req) => {
   }
 });
 
-// Function to validate base64 string
-function isValidBase64(str: string): boolean {
-  try {
-    // Check if string contains only valid base64 characters
-    const base64Regex = /^[A-Za-z0-9+/]*={0,2}$/;
-    if (!base64Regex.test(str)) {
-      return false;
-    }
-    
-    // Try to decode to verify it's valid base64
-    atob(str);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 // Function to look up additional bird information
 async function getBirdInfo(birdName: string): Promise<any> {
   try {
     console.log("Getting bird info for:", birdName);
     
-    // Try to find bird in our database first
     const apiUrl = new URL("/rest/v1/bird_species", Deno.env.get("SUPABASE_URL"));
     apiUrl.searchParams.append("select", "*");
     apiUrl.searchParams.append("name", `ilike.%${birdName}%`);
@@ -192,70 +184,79 @@ async function getBirdInfo(birdName: string): Promise<any> {
       if (foundBird) {
         console.log("Found bird in database:", foundBird.name);
         return {
-          scientific_name: foundBird.scientific_name,
-          description: foundBird.description,
           image_url: foundBird.image_url
         };
       }
     }
 
-    console.log("Bird not found in database, using default info");
-    return {
-      scientific_name: `${birdName.toLowerCase().replace(' ', '_')} scientificus`,
-      description: `The ${birdName} is a bird species identified by our system. This identification was made using advanced image recognition technology.`,
-      image_url: ""
-    };
+    console.log("Bird not found in database");
+    return { image_url: "" };
   } catch (error) {
     console.error("Error getting bird info:", error);
-    return {
-      scientific_name: `${birdName.toLowerCase().replace(' ', '_')} scientificus`,
-      description: `A ${birdName} species.`,
-      image_url: ""
-    };
+    return { image_url: "" };
   }
 }
 
-// Create a more varied fallback result
+// Store the identified bird species in our database
+async function storeBirdSpecies(birdData: BirdIdentificationResult) {
+  try {
+    console.log("Storing bird species:", birdData.name);
+    
+    const apiUrl = new URL("/rest/v1/bird_species", Deno.env.get("SUPABASE_URL"));
+    
+    const response = await fetch(apiUrl.toString(), {
+      method: "POST",
+      headers: {
+        "apikey": Deno.env.get("SUPABASE_ANON_KEY") || "",
+        "Authorization": `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
+        "Content-Type": "application/json",
+        "Prefer": "resolution=merge-duplicates"
+      },
+      body: JSON.stringify({
+        name: birdData.name,
+        scientific_name: birdData.scientific_name,
+        description: birdData.description,
+        image_url: birdData.image_url,
+        confidence: birdData.confidence
+      })
+    });
+
+    if (response.ok) {
+      console.log("Bird species stored successfully");
+    } else {
+      console.error("Error storing bird species:", await response.text());
+    }
+  } catch (error) {
+    console.error("Error storing bird species:", error);
+  }
+}
+
+// Create a fallback result for when identification fails
 async function createFallbackResult(): Promise<BirdIdentificationResult> {
   const fallbackBirds = [
     {
       name: "American Robin",
       scientific_name: "Turdus migratorius",
       description: "A common North American bird known for its red breast and melodious song. Often seen hopping on lawns searching for worms.",
-      confidence: 0.75,
-      image_url: "https://upload.wikimedia.org/wikipedia/commons/b/b8/Turdus-migratorius-002.jpg"
+      confidence: 0.5,
+      image_url: ""
     },
     {
       name: "Blue Jay",
       scientific_name: "Cyanocitta cristata",
       description: "A vibrant blue bird native to North America, known for its intelligence and complex social behaviors.",
-      confidence: 0.78,
-      image_url: "https://upload.wikimedia.org/wikipedia/commons/f/f4/Blue_jay_in_PP_%2830960%29.jpg"
+      confidence: 0.5,
+      image_url: ""
     },
     {
       name: "Northern Cardinal",
       scientific_name: "Cardinalis cardinalis",
       description: "A bright red songbird found in North America. Males are brilliant red while females are brown with red tinges.",
-      confidence: 0.82,
-      image_url: "https://upload.wikimedia.org/wikipedia/commons/d/da/Northern_cardinal_male.jpg"
-    },
-    {
-      name: "House Sparrow",
-      scientific_name: "Passer domesticus",
-      description: "A small passerine bird found in most parts of the world. Known for living in close association with humans.",
-      confidence: 0.71,
-      image_url: "https://upload.wikimedia.org/wikipedia/commons/6/6e/Passer_domesticus_male_%2815%29.jpg"
-    },
-    {
-      name: "Common Crow",
-      scientific_name: "Corvus brachyrhynchos",
-      description: "A large, intelligent black bird known for its adaptability and complex social structure.",
-      confidence: 0.79,
-      image_url: "https://upload.wikimedia.org/wikipedia/commons/a/a9/Corvus_brachyrhynchos_30196.JPG"
+      confidence: 0.5,
+      image_url: ""
     }
   ];
 
-  // Create a more random selection based on current time
   const now = new Date();
   const seed = now.getSeconds() + now.getMilliseconds();
   const selectedBird = fallbackBirds[seed % fallbackBirds.length];
