@@ -98,9 +98,16 @@ export const useSightingWithBadges = () => {
         }
       }
 
+      // Haptic feedback for mobile
+      if (window.navigator && window.navigator.vibrate) {
+        window.navigator.vibrate([100, 50, 100]); // Success pattern
+      }
+
       toast({
-        title: "Sighting saved!",
-        description: "Your bird sighting has been added to your collection.",
+        title: "✅ Sighting Saved Successfully!",
+        description: "Your bird sighting has been added to your collection and is now part of your birding journey.",
+        className: "border-green-500 bg-green-50 text-green-900 shadow-lg border-2",
+        duration: 5000, // Show for 5 seconds
       });
 
       return true;
