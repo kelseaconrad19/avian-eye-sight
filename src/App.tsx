@@ -11,6 +11,7 @@ import Index from "./pages/Index";
 import { SightingsPage } from "./pages/SightingsPage";
 import { BadgesPage } from "./pages/BadgesPage";
 import { ScriptureOverlayPage } from "./pages/ScriptureOverlayPage";
+import { MyOverlaysPage } from "./pages/MyOverlaysPage";
 import { AuthPage } from "./pages/AuthPage";
 import { UploadPage } from "./pages/UploadPage";
 import NotFound from "./pages/NotFound";
@@ -32,6 +33,7 @@ const App = () => (
                     <Route path="/sightings" element={<SightingsPage />} />
                     <Route path="/badges" element={<BadgesPage />} />
                     <Route path="/scripture" element={<ScriptureOverlayPage />} />
+                    <Route path="/my-overlays" element={<MyOverlaysPage />} />
                     <Route path="/upload" element={<UploadPage />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>

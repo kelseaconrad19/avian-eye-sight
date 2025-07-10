@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Bird, Menu, Search, Upload, User, X, Trophy, BookOpen } from "lucide-react";
+import { Bird, Menu, Search, Upload, User, X, Trophy, BookOpen, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 export function Navbar() {
@@ -61,6 +61,10 @@ export function Navbar() {
                       <BookOpen className="h-5 w-5 mr-3" />
                       Scripture Overlay
                     </Link>
+                    <Link to="/my-overlays" className="flex items-center p-4 rounded-md hover:bg-muted" onClick={() => setIsMenuOpen(false)}>
+                      <Image className="h-5 w-5 mr-3" />
+                      My Overlays
+                    </Link>
                     <Link to="/upload" className="flex items-center p-4 rounded-md hover:bg-muted" onClick={() => setIsMenuOpen(false)}>
                       <Upload className="h-5 w-5 mr-3" />
                       Upload
@@ -90,6 +94,12 @@ export function Navbar() {
                 <Button variant="ghost" className="text-foreground">
                   <BookOpen className="h-4 w-4 mr-1" />
                   Scripture
+                </Button>
+              </Link>
+              <Link to="/my-overlays">
+                <Button variant="ghost" className="text-foreground">
+                  <Image className="h-4 w-4 mr-1" />
+                  My Overlays
                 </Button>
               </Link>
               <Link to="/upload">

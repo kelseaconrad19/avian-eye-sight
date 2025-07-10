@@ -271,7 +271,7 @@ export const OverlayEditor: React.FC<OverlayEditorProps> = ({
 
       toast({
         title: "Overlay saved!",
-        description: "Your scripture overlay has been saved successfully.",
+        description: "Your scripture overlay has been saved successfully. Check it out in My Overlays.",
       });
 
     } catch (error) {
