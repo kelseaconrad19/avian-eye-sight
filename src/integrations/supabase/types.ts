@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      bible_verses: {
+        Row: {
+          book: string
+          chapter: number
+          created_at: string
+          id: string
+          text: string
+          verse: number
+          version: string | null
+        }
+        Insert: {
+          book: string
+          chapter: number
+          created_at?: string
+          id?: string
+          text: string
+          verse: number
+          version?: string | null
+        }
+        Update: {
+          book?: string
+          chapter?: number
+          created_at?: string
+          id?: string
+          text?: string
+          verse?: number
+          version?: string | null
+        }
+        Relationships: []
+      }
       bird_species: {
         Row: {
           confidence: number | null
@@ -70,6 +100,53 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      scripture_overlays: {
+        Row: {
+          created_at: string
+          custom_verse_text: string | null
+          edited_image_url: string | null
+          id: string
+          original_image_url: string
+          overlay_settings: Json
+          title: string | null
+          updated_at: string
+          user_id: string
+          verse_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          custom_verse_text?: string | null
+          edited_image_url?: string | null
+          id?: string
+          original_image_url: string
+          overlay_settings?: Json
+          title?: string | null
+          updated_at?: string
+          user_id: string
+          verse_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          custom_verse_text?: string | null
+          edited_image_url?: string | null
+          id?: string
+          original_image_url?: string
+          overlay_settings?: Json
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+          verse_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scripture_overlays_verse_id_fkey"
+            columns: ["verse_id"]
+            isOneToOne: false
+            referencedRelation: "bible_verses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_sightings: {
         Row: {

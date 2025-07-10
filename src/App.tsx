@@ -8,6 +8,7 @@ import { AppLayout } from "./components/layout/AppLayout";
 import Index from "./pages/Index";
 import { SightingsPage } from "./pages/SightingsPage";
 import { BadgesPage } from "./pages/BadgesPage";
+import { ScriptureOverlayPage } from "./pages/ScriptureOverlayPage";
 import { UploadPage } from "./pages/UploadPage";
 import NotFound from "./pages/NotFound";
 
@@ -22,6 +23,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/sightings" element={<SightingsPage />} />
             <Route path="/badges" element={<BadgesPage />} />
+            <Route path="/scripture" element={<ScriptureOverlayPage />} />
             <Route path="/upload" element={<UploadPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
