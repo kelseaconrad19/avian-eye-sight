@@ -421,6 +421,25 @@ export const OverlayEditor: React.FC<OverlayEditorProps> = ({
                   <SelectItem value="Times New Roman">Times New Roman</SelectItem>
                   <SelectItem value="Helvetica">Helvetica</SelectItem>
                   <SelectItem value="Trebuchet MS">Trebuchet MS</SelectItem>
+                  <SelectItem value="Playfair Display">Playfair Display</SelectItem>
+                  <SelectItem value="Merriweather">Merriweather</SelectItem>
+                  <SelectItem value="Open Sans">Open Sans</SelectItem>
+                  <SelectItem value="Lato">Lato</SelectItem>
+                  <SelectItem value="Montserrat">Montserrat</SelectItem>
+                  <SelectItem value="Roboto">Roboto</SelectItem>
+                  <SelectItem value="Poppins">Poppins</SelectItem>
+                  <SelectItem value="Dancing Script">Dancing Script</SelectItem>
+                  <SelectItem value="Great Vibes">Great Vibes</SelectItem>
+                  <SelectItem value="Cinzel">Cinzel</SelectItem>
+                  <SelectItem value="Cormorant Garamond">Cormorant Garamond</SelectItem>
+                  <SelectItem value="EB Garamond">EB Garamond</SelectItem>
+                  <SelectItem value="Crimson Text">Crimson Text</SelectItem>
+                  <SelectItem value="Source Sans Pro">Source Sans Pro</SelectItem>
+                  <SelectItem value="Nunito">Nunito</SelectItem>
+                  <SelectItem value="Inter">Inter</SelectItem>
+                  <SelectItem value="Raleway">Raleway</SelectItem>
+                  <SelectItem value="Oswald">Oswald</SelectItem>
+                  <SelectItem value="Abril Fatface">Abril Fatface</SelectItem>
                 </SelectContent>
               </Select>
             </div>
