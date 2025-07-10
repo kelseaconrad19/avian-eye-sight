@@ -15,6 +15,13 @@ interface SightingsListProps {
 export function SightingsList({ sightings, onDelete }: SightingsListProps) {
   const [selectedSighting, setSelectedSighting] = useState<SightingData | null>(null);
 
+  // Helper function to format location (city, state only)
+  const formatLocation = (location: string) => {
+    const parts = location.split(',').map(part => part.trim());
+    // Return just city and state (first 2 parts), skip country
+    return parts.slice(0, 2).join(', ') || location;
+  };
+
   if (sightings.length === 0) {
     return (
       <Card className="bg-muted/50">
@@ -55,7 +62,7 @@ export function SightingsList({ sightings, onDelete }: SightingsListProps) {
               <span className="text-muted-foreground">
                 {format(sighting.date, "MMM d, yyyy")}
               </span>
-              <span className="font-medium">{sighting.location}</span>
+              <span className="font-medium">{formatLocation(sighting.location)}</span>
             </div>
             <p className="text-sm truncate text-muted-foreground">
               {sighting.notes || "No notes added"}
@@ -104,7 +111,7 @@ export function SightingsList({ sightings, onDelete }: SightingsListProps) {
                 </div>
                 <div>
                   <p className="font-semibold">Location</p>
-                  <p>{selectedSighting.location}</p>
+                  <p>{formatLocation(selectedSighting.location)}</p>
                 </div>
               </div>
               <div className="space-y-1">
