@@ -29,4 +29,5 @@ export interface SightingData {
   location: string;
   notes?: string;
   user_id?: string;
+  uploadedImage?: string; // Add uploaded image field
 }

@@ -68,7 +68,7 @@ export const useSightingWithBadges = () => {
           sighting_date: sightingData.date.toISOString(),
           location: sightingData.location,
           notes: sightingData.notes,
-          image_url: sightingData.birdInfo.imageUrl
+          image_url: sightingData.uploadedImage || sightingData.birdInfo.imageUrl // Use uploaded image if available
         })
         .select()
         .single();

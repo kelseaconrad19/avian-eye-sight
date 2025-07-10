@@ -3,7 +3,8 @@ import { useState } from "react";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { ImageUploader } from "@/components/bird-identification/ImageUploader";
 import { BirdResult, BirdInfo } from "@/components/bird-identification/BirdResult";
-import { SightingForm, SightingData } from "@/components/sightings/SightingForm";
+import { SightingForm } from "@/components/sightings/SightingForm";
+import { SightingData } from "@/types/badges";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { BadgeCelebrationModal } from "@/components/badges/BadgeCelebrationModal";
 import { useToast } from "@/hooks/use-toast";
@@ -54,7 +55,8 @@ export function IdentifyPage() {
   const handleSaveSighting = async (data: SightingData) => {
     const success = await createSighting({
       ...data,
-      birdInfo: identifiedBird!
+      birdInfo: identifiedBird!,
+      uploadedImage: selectedImage // Include the uploaded image
     });
     
     if (success) {
