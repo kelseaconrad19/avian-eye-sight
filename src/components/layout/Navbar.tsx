@@ -52,7 +52,7 @@ export function Navbar() {
               
               {isMenuOpen && (
                 <div className="fixed inset-0 top-14 bg-background z-40 p-4 animate-fade-in">
-                  <div className="flex flex-col space-y-4">
+                  <div className="flex flex-col space-y-4 bg-background">
                     <Link
                       to="/"
                       className="flex items-center p-4 rounded-md hover:bg-muted"
