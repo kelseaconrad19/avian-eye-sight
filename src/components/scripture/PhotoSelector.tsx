@@ -36,10 +36,10 @@ export const PhotoSelector: React.FC<PhotoSelectorProps> = ({ onPhotoSelected })
         return;
       }
 
-      // Try to load from both 'photos' and 'user-uploads' buckets
-      const buckets = ['photos', 'user-uploads'];
       let allPhotos: PhotoItem[] = [];
 
+      // Load photos from storage buckets
+      const buckets = ['photos', 'user-uploads'];
       for (const bucketName of buckets) {
         const { data: files, error } = await supabase.storage
           .from(bucketName)
@@ -66,6 +66,30 @@ export const PhotoSelector: React.FC<PhotoSelectorProps> = ({ onPhotoSelected })
           );
           allPhotos = [...allPhotos, ...bucketPhotos];
         }
+      }
+
+      // Load bird sighting images
+      const { data: sightings, error: sightingsError } = await supabase
+        .from('user_sightings')
+        .select(`
+          id,
+          image_url,
+          created_at,
+          bird_species:bird_species_id (
+            name
+          )
+        `)
+        .eq('user_id', user.id)
+        .not('image_url', 'is', null)
+        .order('created_at', { ascending: false });
+
+      if (!sightingsError && sightings) {
+        const sightingPhotos = sightings.map(sighting => ({
+          name: `${sighting.bird_species?.name || 'Bird'} - ${new Date(sighting.created_at || '').toLocaleDateString()}`,
+          url: sighting.image_url!,
+          created_at: sighting.created_at || new Date().toISOString()
+        }));
+        allPhotos = [...allPhotos, ...sightingPhotos];
       }
 
       // Sort by created_at descending
