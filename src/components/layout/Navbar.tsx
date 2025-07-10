@@ -57,10 +57,6 @@ export function Navbar() {
                       <Upload className="h-5 w-5 mr-3" />
                       Upload
                     </Link>
-                    <Link to="/community" className="flex items-center p-4 rounded-md hover:bg-muted" onClick={() => setIsMenuOpen(false)}>
-                      <User className="h-5 w-5 mr-3" />
-                      Community
-                    </Link>
                   </div>
                 </div>}
             </> : <div className="hidden sm:flex items-center space-x-2">
@@ -74,12 +70,6 @@ export function Navbar() {
                 <Button variant="ghost" className="text-foreground">
                   <Bird className="h-4 w-4 mr-1" />
                   My Sightings
-                </Button>
-              </Link>
-              <Link to="/community">
-                <Button variant="ghost" className="text-foreground">
-                  <User className="h-4 w-4 mr-1" />
-                  Community
                 </Button>
               </Link>
               <Link to="/upload">
