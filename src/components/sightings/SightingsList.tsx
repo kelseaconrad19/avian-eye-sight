@@ -15,9 +15,32 @@ interface SightingsListProps {
 export function SightingsList({ sightings, onDelete }: SightingsListProps) {
   const [selectedSighting, setSelectedSighting] = useState<SightingData | null>(null);
 
-  // Helper function to format location (city, state only)
+  // Helper function to format location (city, state abbreviation only)
   const formatLocation = (location: string) => {
     const parts = location.split(',').map(part => part.trim());
+    
+    // State name to abbreviation mapping
+    const stateAbbreviations: { [key: string]: string } = {
+      'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR', 'California': 'CA',
+      'Colorado': 'CO', 'Connecticut': 'CT', 'Delaware': 'DE', 'Florida': 'FL', 'Georgia': 'GA',
+      'Hawaii': 'HI', 'Idaho': 'ID', 'Illinois': 'IL', 'Indiana': 'IN', 'Iowa': 'IA',
+      'Kansas': 'KS', 'Kentucky': 'KY', 'Louisiana': 'LA', 'Maine': 'ME', 'Maryland': 'MD',
+      'Massachusetts': 'MA', 'Michigan': 'MI', 'Minnesota': 'MN', 'Mississippi': 'MS', 'Missouri': 'MO',
+      'Montana': 'MT', 'Nebraska': 'NE', 'Nevada': 'NV', 'New Hampshire': 'NH', 'New Jersey': 'NJ',
+      'New Mexico': 'NM', 'New York': 'NY', 'North Carolina': 'NC', 'North Dakota': 'ND', 'Ohio': 'OH',
+      'Oklahoma': 'OK', 'Oregon': 'OR', 'Pennsylvania': 'PA', 'Rhode Island': 'RI', 'South Carolina': 'SC',
+      'South Dakota': 'SD', 'Tennessee': 'TN', 'Texas': 'TX', 'Utah': 'UT', 'Vermont': 'VT',
+      'Virginia': 'VA', 'Washington': 'WA', 'West Virginia': 'WV', 'Wisconsin': 'WI', 'Wyoming': 'WY',
+      'District of Columbia': 'DC'
+    };
+    
+    if (parts.length >= 2) {
+      const city = parts[0];
+      const state = parts[1];
+      const stateAbbr = stateAbbreviations[state] || state; // Use abbreviation if found, otherwise keep original
+      return `${city}, ${stateAbbr}`;
+    }
+    
     // Return just city and state (first 2 parts), skip country
     return parts.slice(0, 2).join(', ') || location;
   };
