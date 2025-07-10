@@ -2,14 +2,13 @@ import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useBadgeEngine } from './useBadgeEngine';
 import { BadgeDefinition, UserProfile, SightingData } from '@/types/badges';
-import { useToast } from '@/hooks/use-toast';
 
 export const useSightingWithBadges = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newBadges, setNewBadges] = useState<BadgeDefinition[]>([]);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const { checkAndAwardBadges } = useBadgeEngine();
-  const { toast } = useToast();
 
   const createSighting = useCallback(async (sightingData: SightingData): Promise<boolean> => {
     setIsSubmitting(true);
@@ -18,11 +17,8 @@ export const useSightingWithBadges = () => {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        toast({
-          title: "Authentication required",
-          description: "Please sign in to save sightings.",
-          variant: "destructive",
-        });
+        // Handle auth error - could show a different modal if needed
+        console.error('Authentication required');
         return false;
       }
 
@@ -103,30 +99,26 @@ export const useSightingWithBadges = () => {
         window.navigator.vibrate([100, 50, 100]); // Success pattern
       }
 
-      toast({
-        title: "✅ Sighting Saved Successfully!",
-        description: "Your bird sighting has been added to your collection and is now part of your birding journey.",
-        className: "border-green-500 bg-green-50 text-green-900 shadow-lg border-2",
-        duration: 5000, // Show for 5 seconds
-      });
+      // Show success modal
+      setShowSuccess(true);
 
       return true;
     } catch (error) {
       console.error('Error creating sighting:', error);
-      toast({
-        title: "Error saving sighting",
-        description: "There was a problem saving your sighting. Please try again.",
-        variant: "destructive",
-      });
+      // Handle error - could show error modal if needed
       return false;
     } finally {
       setIsSubmitting(false);
     }
-  }, [checkAndAwardBadges, toast]);
+  }, [checkAndAwardBadges]);
 
   const closeCelebration = useCallback(() => {
     setShowCelebration(false);
     setNewBadges([]);
+  }, []);
+
+  const closeSuccess = useCallback(() => {
+    setShowSuccess(false);
   }, []);
 
   return {
@@ -134,6 +126,8 @@ export const useSightingWithBadges = () => {
     isSubmitting,
     newBadges,
     showCelebration,
-    closeCelebration
+    closeCelebration,
+    showSuccess,
+    closeSuccess
   };
 };

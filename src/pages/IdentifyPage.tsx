@@ -7,6 +7,7 @@ import { SightingForm } from "@/components/sightings/SightingForm";
 import { SightingData } from "@/types/badges";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { BadgeCelebrationModal } from "@/components/badges/BadgeCelebrationModal";
+import { SuccessModal } from "@/components/ui/success-modal";
 import { useToast } from "@/hooks/use-toast";
 import { useSightingWithBadges } from "@/hooks/useSightingWithBadges";
 import { identifyBird } from "@/services/birdIdentification";
@@ -22,7 +23,9 @@ export function IdentifyPage() {
     isSubmitting, 
     newBadges, 
     showCelebration, 
-    closeCelebration 
+    closeCelebration,
+    showSuccess,
+    closeSuccess
   } = useSightingWithBadges();
 
   const handleImageSelected = async (imageData: string) => {
@@ -98,6 +101,14 @@ export function IdentifyPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={showSuccess}
+        onClose={closeSuccess}
+        title="🎉 Sighting Saved Successfully!"
+        description="Your bird sighting has been added to your collection and is now part of your birding journey. Keep exploring and discovering new species!"
+      />
 
       {/* Badge Celebration Modal */}
       <BadgeCelebrationModal
