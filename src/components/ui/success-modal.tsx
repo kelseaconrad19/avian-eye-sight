@@ -31,13 +31,15 @@ export function SuccessModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-4 bg-green-50 border-2 border-green-500 shadow-2xl animate-scale-in">
+      <DialogContent 
+        className="max-w-md w-[calc(100vw-2rem)] bg-green-50 border-2 border-green-500 shadow-2xl animate-scale-in [&>button]:hidden"
+      >
         <div className="flex flex-col items-center text-center p-6 space-y-4">
           <Button
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="absolute top-2 right-2 text-green-600 hover:text-green-800 hover:bg-green-100"
+            className="absolute top-2 right-2 text-green-600 hover:text-green-800 hover:bg-green-100 z-10"
           >
             <X className="h-4 w-4" />
           </Button>
