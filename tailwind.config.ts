@@ -112,8 +112,8 @@ export default {
 				}
 			},
 			fontFamily: {
-				sans: ['Inter', 'sans-serif'],
-				display: ['Nunito', 'sans-serif'],
+				sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+				display: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
