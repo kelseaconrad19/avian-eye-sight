@@ -34,7 +34,16 @@ export function SightingsList({ sightings, onDelete }: SightingsListProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {sightings.map((sighting) => (
-        <Card key={sighting.id} className="card-shadow">
+        <Card key={sighting.id} className="card-shadow overflow-hidden">
+          {sighting.birdInfo.imageUrl && (
+            <div className="w-full">
+              <img
+                src={sighting.birdInfo.imageUrl}
+                alt={sighting.birdInfo.name}
+                className="w-full object-contain bg-muted max-h-48"
+              />
+            </div>
+          )}
           <CardHeader className="pb-2">
             <CardTitle className="text-lg">{sighting.birdInfo.name}</CardTitle>
             <CardDescription className="italic">
@@ -48,13 +57,6 @@ export function SightingsList({ sightings, onDelete }: SightingsListProps) {
               </span>
               <span className="font-medium">{sighting.location}</span>
             </div>
-            {sighting.birdInfo.imageUrl && (
-              <img
-                src={sighting.birdInfo.imageUrl}
-                alt={sighting.birdInfo.name}
-                className="w-full h-32 object-cover rounded-md mb-2"
-              />
-            )}
             <p className="text-sm truncate text-muted-foreground">
               {sighting.notes || "No notes added"}
             </p>
