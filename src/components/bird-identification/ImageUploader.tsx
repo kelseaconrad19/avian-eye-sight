@@ -73,38 +73,82 @@ export function ImageUploader({ onImageSelected }: ImageUploaderProps) {
     }
     
     try {
-      // Request camera with specific constraints for mobile
+      // Enhanced camera constraints for better mobile compatibility
       const constraints = {
         video: {
-          facingMode: "environment", // Use back camera on mobile
-          width: { ideal: 1920 },
-          height: { ideal: 1080 }
+          facingMode: { ideal: "environment" }, // Prefer back camera but allow front as fallback
+          width: { ideal: 1920, max: 1920 },
+          height: { ideal: 1080, max: 1080 },
+          aspectRatio: { ideal: 16/9 }
         }
       };
       
+      console.log("Requesting camera access...");
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      console.log("Camera access granted");
+      
       const videoEl = document.createElement("video");
       const canvasEl = document.createElement("canvas");
       
       videoEl.srcObject = stream;
-      videoEl.play();
+      videoEl.setAttribute('playsinline', 'true'); // Critical for iOS
+      videoEl.setAttribute('muted', 'true');
       
+      // Wait for video to be ready
+      await new Promise((resolve) => {
+        videoEl.onloadedmetadata = () => {
+          videoEl.play().then(resolve).catch(resolve);
+        };
+      });
+      
+      // Wait a bit longer for the camera to stabilize
       setTimeout(() => {
-        canvasEl.width = videoEl.videoWidth;
-        canvasEl.height = videoEl.videoHeight;
+        const displayWidth = videoEl.videoWidth;
+        const displayHeight = videoEl.videoHeight;
+        
+        if (displayWidth === 0 || displayHeight === 0) {
+          console.error("Video dimensions are zero");
+          throw new Error("Camera not ready");
+        }
+        
+        canvasEl.width = displayWidth;
+        canvasEl.height = displayHeight;
         const ctx = canvasEl.getContext("2d");
-        ctx?.drawImage(videoEl, 0, 0);
+        
+        if (!ctx) {
+          throw new Error("Could not get canvas context");
+        }
+        
+        ctx.drawImage(videoEl, 0, 0, displayWidth, displayHeight);
         
         const imageData = canvasEl.toDataURL("image/jpeg", 0.95);
+        console.log("Image captured successfully");
+        
         setPreviewUrl(imageData);
         onImageSelected(imageData);
         
+        // Clean up
         stream.getTracks().forEach(track => track.stop());
-      }, 300);
+        videoEl.srcObject = null;
+      }, 1000); // Increased delay for mobile cameras
+      
     } catch (error) {
+      console.error("Camera error:", error);
+      
+      let errorMessage = "Could not access camera.";
+      if (error.name === "NotAllowedError") {
+        errorMessage = "Please allow camera access in your browser settings.";
+      } else if (error.name === "NotFoundError") {
+        errorMessage = "No camera found on this device.";
+      } else if (error.name === "NotSupportedError") {
+        errorMessage = "Camera is not supported in this browser.";
+      } else if (error.name === "NotReadableError") {
+        errorMessage = "Camera is being used by another application.";
+      }
+      
       toast({
-        title: "Camera access denied",
-        description: "Please allow camera access to use this feature.",
+        title: "Camera Error",
+        description: errorMessage,
         variant: "destructive",
       });
     }

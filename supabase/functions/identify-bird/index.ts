@@ -64,15 +64,21 @@ serve(async (req) => {
             content: [
               {
                 type: "text",
-                text: `Please identify the bird species in this image. Provide your response in this exact JSON format:
+                text: `First, determine if this image contains a bird. If there is NO bird in the image, respond with this exact JSON format:
+{
+  "error": "No bird detected",
+  "message": "Please upload an image that contains a bird for identification."
+}
+
+If there IS a bird in the image, identify the bird species and respond with this exact JSON format:
 {
   "name": "Common Name of the bird",
-  "scientific_name": "Scientific name",
+  "scientific_name": "Scientific name", 
   "description": "Detailed description of the bird, its characteristics, habitat, and behavior (2-3 sentences)",
   "confidence": 0.95
 }
 
-Be as accurate as possible with the identification. If you're not completely certain, still provide your best identification but adjust the confidence score accordingly (0.1 to 1.0).`
+Be very strict about bird detection - only proceed with identification if you can clearly see a bird in the image. Adjust confidence score based on certainty (0.1 to 1.0).`
               },
               {
                 type: "image_url",
@@ -113,6 +119,20 @@ Be as accurate as possible with the identification. If you're not completely cer
         const jsonMatch = content.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           const birdData = JSON.parse(jsonMatch[0]);
+          
+          // Check if no bird was detected
+          if (birdData.error && birdData.error === "No bird detected") {
+            return new Response(
+              JSON.stringify({ 
+                error: "No bird detected",
+                message: birdData.message || "Please upload an image that contains a bird for identification."
+              }),
+              { 
+                status: 400,
+                headers: { ...corsHeaders, "Content-Type": "application/json" } 
+              }
+            );
+          }
           
           // Get additional bird information from our database
           const birdInfo = await getBirdInfo(birdData.name);

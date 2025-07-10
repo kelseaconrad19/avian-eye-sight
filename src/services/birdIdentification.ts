@@ -22,11 +22,22 @@ export const identifyBird = async (imageData: string): Promise<BirdInfo> => {
 
     if (error) {
       console.error('Supabase function error:', error);
+      
+      // Check if it's a "no bird detected" error
+      if (error.message && error.message.includes('No bird detected')) {
+        throw new Error('No bird detected in the image. Please upload an image that contains a bird.');
+      }
+      
       throw new Error(`Failed to identify bird: ${error.message}`);
     }
 
     if (!data) {
       throw new Error('No data returned from identification service');
+    }
+
+    // Check if the response indicates no bird was detected
+    if (data.error && data.error === 'No bird detected') {
+      throw new Error(data.message || 'No bird detected in the image. Please upload an image that contains a bird.');
     }
 
     console.log("Identification result:", data);
