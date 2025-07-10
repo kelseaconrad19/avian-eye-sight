@@ -1,7 +1,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.lovable.avianeye',
+  appId: 'app.lovable.2e8bd201dd454d8e92c1780dade02e54',
   appName: 'avian-eye-sight',
   webDir: 'dist',
   server: {
@@ -9,8 +9,11 @@ const config: CapacitorConfig = {
     cleartext: true
   },
   plugins: {
-    Camera: {
-      permissions: ['camera']
+    SplashScreen: {
+      launchShowDuration: 2000,
+      backgroundColor: '#ffffff',
+      showSpinner: true,
+      spinnerColor: '#999999'
     }
   }
 };
