@@ -1,7 +1,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.2e8bd201dd454d8e92c1780dade02e54',
+  appId: 'com.lovable.avianeye',
   appName: 'avian-eye-sight',
   webDir: 'dist',
   server: {
