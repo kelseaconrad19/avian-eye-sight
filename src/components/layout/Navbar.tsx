@@ -30,7 +30,7 @@ export function Navbar() {
       document.body.style.overflow = 'auto';
     };
   }, [isMenuOpen]);
-  return <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border shadow-sm">
+  return <nav className="sticky top-0 z-50 bg-brand-50/90 backdrop-blur-md border-b border-brand-200 shadow-sm">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center space-x-2">
@@ -93,7 +93,7 @@ export function Navbar() {
                 </Button>
               </Link>
               <Link to="/upload">
-                <Button variant="default" className="bg-primary hover:bg-primary/90">
+                <Button className="bg-brand-500 text-white hover:bg-brand-600 transition-all duration-200 shadow-card">
                   <Upload className="h-4 w-4 mr-1" />
                   Upload
                 </Button>
