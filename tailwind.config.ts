@@ -62,6 +62,44 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
+				// New warm, nature-loving palette
+				brand: {
+					50: '#faf9f6',   // lightest cream
+					100: '#f5f2eb',  // cream
+					200: '#ede6d8',  // warm cream
+					300: '#e0d2c4',  // blush
+					400: '#d1b8a7',  // deeper blush
+					500: '#bc9a86',  // terracotta
+					600: '#a67c65',  // deeper terracotta
+					700: '#8b5a3c',  // deep chestnut for headings
+					800: '#6b4529',  // darker brown
+					900: '#4a2f1a',  // deepest brown
+				},
+				leaf: {
+					50: '#f4f7f1',
+					100: '#e7efdc',
+					200: '#d0dfbe',
+					300: '#b3ca94',
+					400: '#98b56f',
+					500: '#7a9b4d',  // main leafy green accent
+					600: '#5f7a3a',
+					700: '#4b5e2f',
+					800: '#3e4d28',
+					900: '#354024',
+				},
+				sky: {
+					50: '#f0f9ff',   // pale sky blue for backgrounds
+					100: '#e0f2fe',
+					200: '#bae6fd',
+					300: '#7dd3fc',
+					400: '#38bdf8',
+					500: '#0ea5e9',
+					600: '#0284c7',
+					700: '#0369a1',
+					800: '#075985',
+					900: '#0c4a6e',
+				},
+				// Keep existing colors for compatibility
 				maroon: {
 					50: '#fbf0f2',
 					100: '#f7e2e5',
@@ -112,13 +150,19 @@ export default {
 				}
 			},
 			fontFamily: {
-				sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-				display: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+				sans: ['Nunito', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+				body: ['Nunito', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+				display: ['Merriweather Sans', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				sm: 'calc(var(--radius) - 4px)',
+				card: '1rem',  // generous 1rem radius for cards
+			},
+			boxShadow: {
+				card: '0 4px 20px -2px rgba(0, 0, 0, 0.08), 0 2px 8px -2px rgba(0, 0, 0, 0.04)',  // soft, diffuse shadow
+				'card-hover': '0 8px 30px -4px rgba(0, 0, 0, 0.12), 0 4px 12px -2px rgba(0, 0, 0, 0.08)',
 			},
 			keyframes: {
 				'accordion-down': {

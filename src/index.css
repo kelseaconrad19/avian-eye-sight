@@ -32,44 +32,46 @@
 
 @layer base {
   :root {
-    --background: 0 30% 96%;
-    --foreground: 0 30% 15%;
+    /* Warm, nature-loving theme using brand colors */
+    --background: 36 29% 97%;     /* brand-50: lightest cream background */
+    --foreground: 27 48% 29%;     /* brand-800: dark brown for text */
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 30% 15%;
+    --card: 36 25% 98%;           /* slightly warmer white for cards */
+    --card-foreground: 27 48% 29%; /* brand-800: dark brown for card text */
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 30% 15%;
+    --popover: 36 25% 98%;        /* warm white for popovers */
+    --popover-foreground: 27 48% 29%; /* dark brown for popover text */
 
-    --primary: 0 65% 32%;
-    --primary-foreground: 0 30% 98%;
+    --primary: 89 37% 30%;        /* leaf-500: leafy green for primary */
+    --primary-foreground: 36 29% 97%; /* cream text on green */
 
-    --secondary: 20 70% 50%;
-    --secondary-foreground: 0 30% 98%;
+    --secondary: 27 33% 38%;      /* brand-700: chestnut for secondary */
+    --secondary-foreground: 36 29% 97%; /* cream text on chestnut */
 
-    --muted: 0 20% 92%;
-    --muted-foreground: 0 20% 45%;
+    --muted: 36 25% 93%;          /* brand-100: warm muted background */
+    --muted-foreground: 27 33% 45%; /* brand-600: medium brown for muted text */
 
-    --accent: 40 80% 52%;
-    --accent-foreground: 40 100% 98%;
+    --accent: 89 29% 44%;         /* leaf-600: darker green for accents */
+    --accent-foreground: 36 29% 97%; /* cream text on accent */
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 84.2% 60.2%; /* keep red for destructive actions */
     --destructive-foreground: 210 40% 98%;
 
-    --border: 0 20% 88%;
-    --input: 0 20% 88%;
-    --ring: 0 65% 32%;
+    --border: 36 25% 89%;         /* brand-200: warm border */
+    --input: 36 25% 89%;          /* warm input borders */
+    --ring: 89 37% 30%;           /* leaf green for focus rings */
 
-    --radius: 0.75rem;
+    --radius: 1rem;               /* generous 1rem radius */
 
-    --sidebar-background: 0 30% 98%;
-    --sidebar-foreground: 0 30% 20%;
-    --sidebar-primary: 0 65% 36%;
-    --sidebar-primary-foreground: 0 30% 97%;
-    --sidebar-accent: 0 20% 94%;
-    --sidebar-accent-foreground: 0 30% 20%;
-    --sidebar-border: 0 20% 90%;
-    --sidebar-ring: 0 65% 40%;
+    /* Sidebar with warm tones */
+    --sidebar-background: 36 29% 98%;  /* cream sidebar */
+    --sidebar-foreground: 27 48% 29%;  /* dark brown text */
+    --sidebar-primary: 89 37% 30%;     /* leaf green primary */
+    --sidebar-primary-foreground: 36 29% 97%;
+    --sidebar-accent: 36 25% 94%;      /* warm accent */
+    --sidebar-accent-foreground: 27 48% 29%;
+    --sidebar-border: 36 25% 90%;      /* warm border */
+    --sidebar-ring: 89 37% 30%;        /* leaf green ring */
   }
 
   .dark {
@@ -118,16 +120,61 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground font-body;
+    line-height: 1.6; /* Relaxed line height for readability */
   }
 
+  /* Typography improvements */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display;
+    @apply font-display font-bold text-brand-700;
+    line-height: 1.2;
+  }
+
+  p {
+    @apply font-body leading-relaxed;
+  }
+
+  /* Ensure good contrast on buttons */
+  .btn-brand {
+    @apply bg-brand-500 text-white hover:bg-brand-600 transition-colors;
   }
 }
 
 @layer utilities {
+  /* Enhanced card styling */
   .card-shadow {
-    @apply shadow-md hover:shadow-lg transition-shadow duration-300;
+    @apply shadow-card hover:shadow-card-hover transition-all duration-300;
+  }
+
+  .rounded-card {
+    @apply rounded-card;
+  }
+
+  /* Hover effects */
+  .hover-lift {
+    @apply hover:-translate-y-1 transition-transform duration-200;
+  }
+
+  .hover-scale {
+    @apply hover:scale-102 transition-transform duration-200;
+  }
+
+  /* Section headers with leafy underline */
+  .section-header {
+    @apply flex items-center gap-3 text-brand-700 font-display font-bold;
+  }
+
+  .section-underline {
+    @apply flex-1 h-px bg-gradient-to-r from-leaf-400 to-transparent;
+  }
+
+  /* Polaroid-style upload card */
+  .polaroid-card {
+    @apply rounded-card shadow-card bg-white p-6 hover-lift hover-scale;
+  }
+
+  /* Sky blue gradient strip */
+  .sky-gradient-strip {
+    @apply h-1 bg-gradient-to-r from-sky-200 to-sky-100 rounded-t-card;
   }
 }
