@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Bird, Menu, Search, Upload, User, X, Trophy, BookOpen, Image } from "lucide-react";
+import { Bird, Menu, Search, Upload, User, X, Trophy, BookOpen, Image, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/contexts/AuthContext";
+
 export function Navbar() {
   const isMobile = useIsMobile();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const { user, signOut } = useAuth();
 
   // Close menu when route changes
   useEffect(() => {
@@ -17,6 +20,14 @@ export function Navbar() {
       window.navigator.vibrate(50); // Haptic feedback
     }
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleLogout = async () => {
+    if (window.navigator && window.navigator.vibrate) {
+      window.navigator.vibrate(50); // Haptic feedback
+    }
+    await signOut();
+    setIsMenuOpen(false);
   };
 
   // Prevent scrolling when menu is open
@@ -65,6 +76,16 @@ export function Navbar() {
                       <Upload className="h-5 w-5 mr-3" />
                       Upload
                     </Link>
+                    {user && (
+                      <Button 
+                        variant="ghost" 
+                        className="flex items-center p-4 rounded-md hover:bg-muted w-full justify-start text-destructive hover:text-destructive" 
+                        onClick={handleLogout}
+                      >
+                        <LogOut className="h-5 w-5 mr-3" />
+                        Logout
+                      </Button>
+                    )}
                   </div>
                 </div>}
             </> : <div className="hidden sm:flex items-center space-x-2">
@@ -98,6 +119,16 @@ export function Navbar() {
                   Upload
                 </Button>
               </Link>
+              {user && (
+                <Button 
+                  variant="ghost" 
+                  className="text-destructive hover:text-destructive" 
+                  onClick={handleLogout}
+                >
+                  <LogOut className="h-4 w-4 mr-1" />
+                  Logout
+                </Button>
+              )}
             </div>}
         </div>
       </div>
