@@ -5,9 +5,10 @@ import { ImageUploader } from "@/components/bird-identification/ImageUploader";
 import { BirdResult, BirdInfo } from "@/components/bird-identification/BirdResult";
 import { SightingForm, SightingData } from "@/components/sightings/SightingForm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { BadgeCelebrationModal } from "@/components/badges/BadgeCelebrationModal";
 import { useToast } from "@/hooks/use-toast";
+import { useSightingWithBadges } from "@/hooks/useSightingWithBadges";
 import { identifyBird } from "@/services/birdIdentification";
-import { supabase } from "@/integrations/supabase/client";
 
 export function IdentifyPage() {
   const [selectedImage, setSelectedImage] = useState("");
@@ -15,6 +16,13 @@ export function IdentifyPage() {
   const [identifiedBird, setIdentifiedBird] = useState<BirdInfo | null>(null);
   const [showSightingForm, setShowSightingForm] = useState(false);
   const { toast } = useToast();
+  const { 
+    createSighting, 
+    isSubmitting, 
+    newBadges, 
+    showCelebration, 
+    closeCelebration 
+  } = useSightingWithBadges();
 
   const handleImageSelected = async (imageData: string) => {
     setSelectedImage(imageData);
@@ -44,81 +52,14 @@ export function IdentifyPage() {
   };
 
   const handleSaveSighting = async (data: SightingData) => {
-    try {
-      // Only save to Supabase if we have bird data
-      if (identifiedBird) {
-        // First ensure the bird species exists in the database
-        const { data: birdSpecies, error: birdError } = await supabase
-          .from('bird_species')
-          .select('id')
-          .eq('name', identifiedBird.name)
-          .single();
-
-        if (birdError && birdError.code !== 'PGRST116') {
-          console.error("Error fetching bird species:", birdError);
-          throw birdError;
-        }
-
-        let birdSpeciesId = birdSpecies?.id;
-        
-        // If bird not found, insert it
-        if (!birdSpeciesId) {
-          const { data: newBird, error: insertError } = await supabase
-            .from('bird_species')
-            .insert({
-              name: identifiedBird.name,
-              scientific_name: identifiedBird.scientificName,
-              description: identifiedBird.description,
-              image_url: identifiedBird.imageUrl,
-              confidence: identifiedBird.confidence
-            })
-            .select('id')
-            .single();
-
-          if (insertError) {
-            console.error("Error inserting bird species:", insertError);
-            throw insertError;
-          }
-
-          birdSpeciesId = newBird.id;
-        }
-
-        // Save the user sighting to Supabase
-        const { error: sightingError } = await supabase
-          .from('user_sightings')
-          .insert({
-            bird_species_id: birdSpeciesId,
-            location: data.location,
-            notes: data.notes,
-            sighting_date: data.date.toISOString(),
-            image_url: selectedImage
-          });
-
-        if (sightingError) {
-          console.error("Error saving sighting:", sightingError);
-          throw sightingError;
-        }
-
-        // We successfully saved to Supabase, so no need to save to localStorage
-      } else {
-        // No bird data, save to localStorage as fallback
-        const currentSightings = JSON.parse(localStorage.getItem("birdSightings") || "[]");
-        const updatedSightings = [...currentSightings, data];
-        localStorage.setItem("birdSightings", JSON.stringify(updatedSightings));
-      }
-      
+    const success = await createSighting({
+      ...data,
+      birdInfo: identifiedBird!
+    });
+    
+    if (success) {
       setShowSightingForm(false);
-      toast({
-        title: "Sighting saved",
-        description: `${identifiedBird?.name} has been added to your sightings!`,
-      });
-    } catch (error) {
-      console.error("Error saving sighting:", error);
-      toast({
-        title: "Error saving sighting",
-        description: "There was a problem saving your sighting. Please try again.",
-        variant: "destructive",
-      });
+      // The badge celebration will show automatically if badges were earned
     }
   };
 
@@ -155,6 +96,13 @@ export function IdentifyPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Badge Celebration Modal */}
+      <BadgeCelebrationModal
+        isOpen={showCelebration}
+        onClose={closeCelebration}
+        badges={newBadges}
+      />
     </PageContainer>
   );
 }

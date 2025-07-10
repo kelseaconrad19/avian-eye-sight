@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Bird, Menu, Search, Upload, User, X } from "lucide-react";
+import { Bird, Menu, Search, Upload, User, X, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 export function Navbar() {
@@ -53,6 +53,10 @@ export function Navbar() {
                       <Bird className="h-5 w-5 mr-3" />
                       My Sightings
                     </Link>
+                    <Link to="/badges" className="flex items-center p-4 rounded-md hover:bg-muted" onClick={() => setIsMenuOpen(false)}>
+                      <Trophy className="h-5 w-5 mr-3" />
+                      My Badges
+                    </Link>
                     <Link to="/upload" className="flex items-center p-4 rounded-md hover:bg-muted" onClick={() => setIsMenuOpen(false)}>
                       <Upload className="h-5 w-5 mr-3" />
                       Upload
@@ -70,6 +74,12 @@ export function Navbar() {
                 <Button variant="ghost" className="text-foreground">
                   <Bird className="h-4 w-4 mr-1" />
                   My Sightings
+                </Button>
+              </Link>
+              <Link to="/badges">
+                <Button variant="ghost" className="text-foreground">
+                  <Trophy className="h-4 w-4 mr-1" />
+                  My Badges
                 </Button>
               </Link>
               <Link to="/upload">

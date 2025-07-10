@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppLayout } from "./components/layout/AppLayout";
 import Index from "./pages/Index";
 import { SightingsPage } from "./pages/SightingsPage";
+import { BadgesPage } from "./pages/BadgesPage";
 import { UploadPage } from "./pages/UploadPage";
 import NotFound from "./pages/NotFound";
 
@@ -20,6 +21,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/sightings" element={<SightingsPage />} />
+            <Route path="/badges" element={<BadgesPage />} />
             <Route path="/upload" element={<UploadPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
