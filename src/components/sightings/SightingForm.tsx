@@ -9,8 +9,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Textarea } from "@/components/ui/textarea";
 import { BirdInfo } from "../bird-identification/BirdResult";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, MapPin, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 export interface SightingData {
   id: string;
@@ -28,6 +29,8 @@ interface SightingFormProps {
 
 export function SightingForm({ birdInfo, onSubmit, onCancel }: SightingFormProps) {
   const [date, setDate] = useState<Date>(new Date());
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const { toast } = useToast();
   
   const form = useForm({
     defaultValues: {
@@ -35,6 +38,85 @@ export function SightingForm({ birdInfo, onSubmit, onCancel }: SightingFormProps
       notes: "",
     },
   });
+
+  const getCurrentLocation = async () => {
+    setIsGettingLocation(true);
+    
+    try {
+      // Check if geolocation is supported
+      if (!navigator.geolocation) {
+        throw new Error("Geolocation is not supported by this browser");
+      }
+
+      // Get current position
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 60000
+        });
+      });
+
+      const { latitude, longitude } = position.coords;
+      
+      // Reverse geocode to get address
+      try {
+        const response = await fetch(
+          `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+        );
+        
+        if (response.ok) {
+          const data = await response.json();
+          const location = [
+            data.locality || data.city,
+            data.principalSubdivision || data.region,
+            data.countryName
+          ].filter(Boolean).join(", ");
+          
+          form.setValue("location", location || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+        } else {
+          // Fallback to coordinates
+          form.setValue("location", `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+        }
+      } catch (geocodeError) {
+        // Fallback to coordinates if reverse geocoding fails
+        form.setValue("location", `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+      }
+
+      toast({
+        title: "Location found!",
+        description: "Your current location has been added to the sighting.",
+      });
+      
+    } catch (error) {
+      console.error("Error getting location:", error);
+      
+      let errorMessage = "Could not get your location. ";
+      if (error instanceof GeolocationPositionError) {
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage += "Please allow location access in your browser settings.";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage += "Location information is unavailable.";
+            break;
+          case error.TIMEOUT:
+            errorMessage += "Location request timed out.";
+            break;
+        }
+      } else {
+        errorMessage += "Please enter your location manually.";
+      }
+      
+      toast({
+        title: "Location Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsGettingLocation(false);
+    }
+  };
 
   const handleSubmit = form.handleSubmit((data) => {
     onSubmit({
@@ -59,9 +141,25 @@ export function SightingForm({ birdInfo, onSubmit, onCancel }: SightingFormProps
           render={({ field }) => (
             <FormItem>
               <FormLabel>Location</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter location" {...field} />
-              </FormControl>
+              <div className="flex gap-2">
+                <FormControl>
+                  <Input placeholder="Enter location or use current location" {...field} />
+                </FormControl>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={getCurrentLocation}
+                  disabled={isGettingLocation}
+                  title="Use current location"
+                >
+                  {isGettingLocation ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <MapPin className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
               <FormMessage />
             </FormItem>
           )}
