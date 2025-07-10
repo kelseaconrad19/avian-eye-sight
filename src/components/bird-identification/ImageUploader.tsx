@@ -12,7 +12,10 @@ interface ImageUploaderProps {
 
 export function ImageUploader({ onImageSelected }: ImageUploaderProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [showCamera, setShowCamera] = useState(false);
+  const [stream, setStream] = useState<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
@@ -84,53 +87,21 @@ export function ImageUploader({ onImageSelected }: ImageUploaderProps) {
       };
       
       console.log("Requesting camera access...");
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
       console.log("Camera access granted");
       
-      const videoEl = document.createElement("video");
-      const canvasEl = document.createElement("canvas");
+      setStream(mediaStream);
+      setShowCamera(true);
       
-      videoEl.srcObject = stream;
-      videoEl.setAttribute('playsinline', 'true'); // Critical for iOS
-      videoEl.setAttribute('muted', 'true');
-      
-      // Wait for video to be ready
-      await new Promise((resolve) => {
-        videoEl.onloadedmetadata = () => {
-          videoEl.play().then(resolve).catch(resolve);
-        };
-      });
-      
-      // Wait a bit longer for the camera to stabilize
+      // Wait for video element to be available
       setTimeout(() => {
-        const displayWidth = videoEl.videoWidth;
-        const displayHeight = videoEl.videoHeight;
-        
-        if (displayWidth === 0 || displayHeight === 0) {
-          console.error("Video dimensions are zero");
-          throw new Error("Camera not ready");
+        if (videoRef.current) {
+          videoRef.current.srcObject = mediaStream;
+          videoRef.current.setAttribute('playsinline', 'true'); // Critical for iOS
+          videoRef.current.setAttribute('muted', 'true');
+          videoRef.current.play().catch(console.error);
         }
-        
-        canvasEl.width = displayWidth;
-        canvasEl.height = displayHeight;
-        const ctx = canvasEl.getContext("2d");
-        
-        if (!ctx) {
-          throw new Error("Could not get canvas context");
-        }
-        
-        ctx.drawImage(videoEl, 0, 0, displayWidth, displayHeight);
-        
-        const imageData = canvasEl.toDataURL("image/jpeg", 0.95);
-        console.log("Image captured successfully");
-        
-        setPreviewUrl(imageData);
-        onImageSelected(imageData);
-        
-        // Clean up
-        stream.getTracks().forEach(track => track.stop());
-        videoEl.srcObject = null;
-      }, 1000); // Increased delay for mobile cameras
+      }, 100);
       
     } catch (error) {
       console.error("Camera error:", error);
@@ -154,10 +125,89 @@ export function ImageUploader({ onImageSelected }: ImageUploaderProps) {
     }
   };
 
+  const takePicture = () => {
+    if (window.navigator && window.navigator.vibrate) {
+      window.navigator.vibrate(50); // Haptic feedback
+    }
+    
+    if (!videoRef.current || !stream) return;
+    
+    const videoEl = videoRef.current;
+    const canvasEl = document.createElement("canvas");
+    
+    const displayWidth = videoEl.videoWidth;
+    const displayHeight = videoEl.videoHeight;
+    
+    if (displayWidth === 0 || displayHeight === 0) {
+      console.error("Video dimensions are zero");
+      return;
+    }
+    
+    canvasEl.width = displayWidth;
+    canvasEl.height = displayHeight;
+    const ctx = canvasEl.getContext("2d");
+    
+    if (!ctx) {
+      console.error("Could not get canvas context");
+      return;
+    }
+    
+    ctx.drawImage(videoEl, 0, 0, displayWidth, displayHeight);
+    
+    const imageData = canvasEl.toDataURL("image/jpeg", 0.95);
+    console.log("Image captured successfully");
+    
+    setPreviewUrl(imageData);
+    onImageSelected(imageData);
+    
+    // Clean up camera
+    closeCamera();
+  };
+
+  const closeCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    setShowCamera(false);
+  };
+
   return (
     <Card className="overflow-hidden">
       <CardContent className="p-0">
-        {previewUrl ? (
+        {showCamera ? (
+          <div className="relative">
+            <video
+              ref={videoRef}
+              className="w-full h-auto rounded-t-md"
+              autoPlay
+              playsInline
+              muted
+            />
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-4">
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-full w-12 h-12 bg-white/90 hover:bg-white"
+                onClick={closeCamera}
+                title="Close camera"
+              >
+                <X className="h-6 w-6" />
+              </Button>
+              <Button
+                size="icon"
+                className="rounded-full w-16 h-16 bg-white hover:bg-white/90 text-black border-4 border-white"
+                onClick={takePicture}
+                title="Take photo"
+              >
+                <Camera className="h-8 w-8" />
+              </Button>
+            </div>
+          </div>
+        ) : previewUrl ? (
           <div className="relative">
             <img
               src={previewUrl}
@@ -188,31 +238,33 @@ export function ImageUploader({ onImageSelected }: ImageUploaderProps) {
           </div>
         )}
 
-        <div className="p-4 flex space-x-2">
-          <input
-            ref={fileInputRef}
-            type="file"
-            className="hidden"
-            accept="image/*"
-            onChange={handleFileChange}
-          />
-          <Button
-            variant="outline"
-            className="flex-1 h-12" // Taller button for better touch target
-            onClick={handleClick}
-          >
-            <Upload className="h-4 w-4 mr-2" />
-            {isMobile ? "Gallery" : "Choose File"}
-          </Button>
-          <Button
-            variant="outline"
-            className="flex-1 h-12" // Taller button for better touch target
-            onClick={handleCapture}
-          >
-            <Camera className="h-4 w-4 mr-2" />
-            {isMobile ? "Camera" : "Use Camera"}
-          </Button>
-        </div>
+        {!showCamera && (
+          <div className="p-4 flex space-x-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              accept="image/*"
+              onChange={handleFileChange}
+            />
+            <Button
+              variant="outline"
+              className="flex-1 h-12" // Taller button for better touch target
+              onClick={handleClick}
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              {isMobile ? "Gallery" : "Choose File"}
+            </Button>
+            <Button
+              variant="outline"
+              className="flex-1 h-12" // Taller button for better touch target
+              onClick={handleCapture}
+            >
+              <Camera className="h-4 w-4 mr-2" />
+              {isMobile ? "Camera" : "Use Camera"}
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
