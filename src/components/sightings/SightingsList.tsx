@@ -92,7 +92,7 @@ export function SightingsList({ sightings, onDelete }: SightingsListProps) {
                 <img
                   src={selectedSighting.birdInfo.imageUrl}
                   alt={selectedSighting.birdInfo.name}
-                  className="w-full h-48 object-cover rounded-md"
+                  className="w-full object-contain rounded-md max-h-96"
                 />
               )}
               <div className="grid grid-cols-2 gap-2 text-sm">
